@@ -52,21 +52,24 @@ for model_key in selected_models:
     for feature in additional_features[model_key]:
         user_input[feature] = st.number_input(f"{feature} ({model_key}):", min_value=0.0, value=0.0)
 
-# 将用户输入转换为 DataFrame
-input_df = pd.DataFrame([user_input])
-
 # 定义模型预测结果存储字典
 model_predictions = {}
 
 # 对选定的每个模型进行标准化和预测
 for model_key in selected_models:
-    # 创建副本并标准化指定的特征
-    input_df_scaled = input_df.copy()
-    input_df_scaled[features_to_scale] = scalers[model_key].transform(input_df[features_to_scale])
+    # 针对每个模型构建专用的输入数据
+    model_input_df = pd.DataFrame([user_input])
+    
+    # 只保留该模型的特征列
+    model_features = features_to_scale + additional_features[model_key]
+    model_input_df = model_input_df[model_features]
+    
+    # 对需要标准化的特征进行标准化
+    model_input_df[features_to_scale] = scalers[model_key].transform(model_input_df[features_to_scale])
     
     # 使用模型进行预测
-    predicted_proba = models[model_key].predict_proba(input_df_scaled)[0]
-    predicted_class = models[model_key].predict(input_df_scaled)[0]
+    predicted_proba = models[model_key].predict_proba(model_input_df)[0]
+    predicted_class = models[model_key].predict(model_input_df)[0]
     
     # 保存预测结果
     model_predictions[model_key] = {
