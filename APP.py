@@ -38,7 +38,7 @@ original_features_to_scale = [
     'CI_uterine cavity fluid'
 ]
 
-# 额外特征名称映射
+# 额外特征名称映射（移除 .0 后缀）
 additional_features = {
     'C': ['CM5141', 'CM6160', 'CM7441', 'CM7439', 'CM7438', 'CM5139', 'CM6557', 'CM4088'],
     'P': ['PM733', 'PM285', 'PM673', 'PM469', 'PP14', 'PP344', 'PP526', 'PP443', 'PM787', 'PM722'],
@@ -81,9 +81,11 @@ for model_key in selected_models:
     # 针对每个模型构建专用的输入数据
     model_input_df = pd.DataFrame([user_input])
     
-    # 只保留该模型的特征列
-    model_features = original_features_to_scale + [f"{feature}.0" for feature in additional_features[model_key]]
-    model_input_df.columns = model_features
+    # 获取模型所需的特征列
+    model_features = original_features_to_scale + additional_features[model_key]
+    
+    # 仅保留当前模型需要的特征
+    model_input_df = model_input_df[model_features]
     
     # 对需要标准化的特征进行标准化
     model_input_df[original_features_to_scale] = scalers[model_key].transform(model_input_df[original_features_to_scale])
