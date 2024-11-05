@@ -18,11 +18,15 @@ models = {
 
 # 定义特征名称
 features_to_scale = [
-    'CI_age', 'CI_endometrial thickness', 'CI_HE4', 'CI_menopause',
-    'CI_HRT', 'CI_endometrial heterogeneity',
-    'CI_uterine cavity occupation',
-    'CI_uterine cavity occupying lesion with rich blood flow',
-    'CI_uterine cavity fluid'
+    'Age (years)',                                  # Age (e.g., 52 years)
+    'Endometrial thickness (mm)',                   # Endometrial thickness in mm
+    'HE4 (pmol/L)',                                 # HE4 level in pmol/L
+    'Menopause (1=yes)',                            # Menopause status (1=yes)
+    'HRT (Hormone Replacement Therapy, 1=yes)',     # HRT status (1=yes)
+    'Endometrial heterogeneity (1=yes)',            # Endometrial heterogeneity (1=yes)
+    'Uterine cavity occupation (1=yes)',            # Uterine cavity occupation (1=yes)
+    'Uterine cavity occupying lesion with rich blood flow (1=yes)', # Uterine cavity occupying lesion with rich blood flow (1=yes)
+    'Uterine cavity fluid (1=yes)'                  # Uterine cavity fluid (1=yes)
 ]
 
 additional_features = {
@@ -45,9 +49,15 @@ selected_models = st.multiselect(
 
 # 获取用户输入
 user_input = {}
-for feature in features_to_scale:
-    user_input[feature] = st.number_input(f"{feature}:", min_value=0.0, value=0.0)
 
+# 定义特征输入
+for feature in features_to_scale:
+    if "1=yes" in feature:  # 对于分类变量，限制输入为0或1
+        user_input[feature] = st.selectbox(f"{feature}:", options=[0, 1])
+    else:  # 对于连续变量，使用数值输入框
+        user_input[feature] = st.number_input(f"{feature}:", min_value=0.0, value=0.0)
+
+# 为每个选定的模型定义额外特征
 for model_key in selected_models:
     for feature in additional_features[model_key]:
         user_input[feature] = st.number_input(f"{feature} ({model_key}):", min_value=0.0, value=0.0)
