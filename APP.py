@@ -47,7 +47,7 @@ additional_features = {
 }
 
 # Streamlit界面
-st.title("疾病风险预测器")
+st.title("子宫内膜癌风险预测器")
 
 # 模型选择
 selected_models = st.multiselect(
@@ -95,40 +95,52 @@ for model_key in selected_models:
         'proba': predicted_proba,
         'class': predicted_class
     }
-    
-    # 显示每个模型的预测概率
-    st.write(f"**模型 {model_key} 预测概率:**")
-    st.write(f"类别 0（无疾病）: {predicted_proba[0]:.2f}")
-    st.write(f"类别 1（有疾病）: {predicted_proba[1]:.2f}")
 
-# 确定最终预测类别
-final_class = None
+# 文案输出
+def generate_output(model_key, predicted_class, predicted_proba):
+    location = {"U": "宫腔", "C": "宫颈", "P": "血浆"}[model_key]
+    risk_level = "癌症风险系数较高" if predicted_class == 1 else "癌症风险系数较低"
+    proba_percentage = predicted_proba[1] * 100
+    if predicted_class == 1:
+        return f"子宫内膜癌{location}筛查模型提示“{risk_level}”，预测癌症概率为{proba_percentage:.1f}%。建议患者进一步接受专科诊断，以便尽早排除风险或启动干预治疗。"
+    else:
+        return f"子宫内膜癌{location}筛查模型提示“{risk_level}”，预测癌症概率为{proba_percentage:.1f}%。建议患者密切随访或进一步接受专科诊断。同时注意保持健康体重、均衡饮食和规律运动，以预防子宫内膜癌。"
 
+# 最终结果判定
 if len(selected_models) == 1:
-    # 若只选择一个模型，则采用该模型的预测结果
-    final_class = list(model_predictions.values())[0]['class']
+    # 若选择一个模型
+    model_key = selected_models[0]
+    st.write(generate_output(model_key, model_predictions[model_key]['class'], model_predictions[model_key]['proba']))
 
 elif len(selected_models) == 2:
-    # 若选择两个模型，按排名优先级 U > C > P 选择预测结果
+    # 若选择两个模型，按排名优先级 U > C > P 确定最终输出
     if 'U' in selected_models:
-        final_class = model_predictions['U']['class']
+        model_key = 'U'
     elif 'C' in selected_models:
-        final_class = model_predictions['C']['class']
+        model_key = 'C'
     else:
-        final_class = model_predictions['P']['class']
+        model_key = 'P'
+    st.write(generate_output(model_key, model_predictions[model_key]['class'], model_predictions[model_key]['proba']))
 
 elif len(selected_models) == 3:
-    # 若选择三个模型，以预测类别 0 或 1 出现次数最多的为最终结果
-    classes = [model_predictions[model]['class'] for model in selected_models]
-    final_class = max(set(classes), key=classes.count)
-
-# 显示最终预测结果
-st.write("**最终预测结果:**")
-if final_class == 1:
-    st.write(
-        "**结果: 您有较高的患病风险。** 根据模型的预测结果，建议您住院接受进一步的专业医疗评估。"
-    )
-else:
-    st.write(
-        "**结果: 您的患病风险较低。** 建议您定期进行健康检查，以便随时监控您的健康状况。"
-    )
+    # 若选择三个模型，根据投票决定最终输出
+    cancer_classes = sum(model_predictions[model_key]['class'] for model_key in selected_models)
+    if cancer_classes >= 2:
+        # 两个或以上模型预测为癌症
+        st.write("**子宫内膜癌投票模型提示“癌症风险系数较高”。**")
+    else:
+        # 两个或以上模型预测为非癌症
+        st.write("**子宫内膜癌投票模型提示“癌症风险系数低”。**")
+    
+    # 输出每个模型的预测概率和建议
+    for model_key in selected_models:
+        location = {"U": "宫腔", "C": "宫颈", "P": "血浆"}[model_key]
+        risk_level = "高" if model_predictions[model_key]['class'] == 1 else "低"
+        proba_percentage = model_predictions[model_key]['proba'][1] * 100
+        st.write(f"{location}筛查模型预测癌症概率为{proba_percentage:.1f}%。")
+    
+    # 建议
+    if cancer_classes >= 2:
+        st.write("建议患者进一步接受确诊检查，以便尽早排除风险或启动干预治疗。")
+    else:
+        st.write("建议患者密切随访。同时注意保持健康体重、均衡饮食和规律运动，以预防子宫内膜癌。")
