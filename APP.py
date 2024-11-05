@@ -17,7 +17,7 @@ models = {
 }
 
 # 定义特征名称
-features_to_scale = [
+display_features_to_scale = [
     'Age (years)',                                  # Age (e.g., 52 years)
     'Endometrial thickness (mm)',                   # Endometrial thickness in mm
     'HE4 (pmol/L)',                                 # HE4 level in pmol/L
@@ -27,6 +27,15 @@ features_to_scale = [
     'Uterine cavity occupation (1=yes)',            # Uterine cavity occupation (1=yes)
     'Uterine cavity occupying lesion with rich blood flow (1=yes)', # Uterine cavity occupying lesion with rich blood flow (1=yes)
     'Uterine cavity fluid (1=yes)'                  # Uterine cavity fluid (1=yes)
+]
+
+# 原始特征名称，用于标准化器
+original_features_to_scale = [
+    'CI_age', 'CI_endometrial thickness', 'CI_HE4', 'CI_menopause',
+    'CI_HRT', 'CI_endometrial heterogeneity',
+    'CI_uterine cavity occupation',
+    'CI_uterine cavity occupying lesion with rich blood flow',
+    'CI_uterine cavity fluid'
 ]
 
 additional_features = {
@@ -51,11 +60,11 @@ selected_models = st.multiselect(
 user_input = {}
 
 # 定义特征输入
-for feature in features_to_scale:
+for i, feature in enumerate(display_features_to_scale):
     if "1=yes" in feature:  # 对于分类变量，限制输入为0或1
-        user_input[feature] = st.selectbox(f"{feature}:", options=[0, 1])
+        user_input[original_features_to_scale[i]] = st.selectbox(f"{feature}:", options=[0, 1])
     else:  # 对于连续变量，使用数值输入框
-        user_input[feature] = st.number_input(f"{feature}:", min_value=0.0, value=0.0)
+        user_input[original_features_to_scale[i]] = st.number_input(f"{feature}:", min_value=0.0, value=0.0)
 
 # 为每个选定的模型定义额外特征
 for model_key in selected_models:
@@ -71,11 +80,11 @@ for model_key in selected_models:
     model_input_df = pd.DataFrame([user_input])
     
     # 只保留该模型的特征列
-    model_features = features_to_scale + additional_features[model_key]
+    model_features = original_features_to_scale + additional_features[model_key]
     model_input_df = model_input_df[model_features]
     
     # 对需要标准化的特征进行标准化
-    model_input_df[features_to_scale] = scalers[model_key].transform(model_input_df[features_to_scale])
+    model_input_df[original_features_to_scale] = scalers[model_key].transform(model_input_df[original_features_to_scale])
     
     # 使用模型进行预测
     predicted_proba = models[model_key].predict_proba(model_input_df)[0]
