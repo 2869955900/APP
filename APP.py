@@ -38,7 +38,7 @@ original_features_to_scale = [
     'CI_uterine cavity fluid'
 ]
 
-# 额外特征名称映射（移除 .0 后缀）
+# 额外特征名称映射
 additional_features = {
     'C': ['CM5141', 'CM6160', 'CM7441', 'CM7439', 'CM7438', 'CM5139', 'CM6557', 'CM4088'],
     'P': ['PM733', 'PM285', 'PM673', 'PM469', 'PP14', 'PP344', 'PP526', 'PP443', 'PM787', 'PM722'],
@@ -103,8 +103,8 @@ for model_key in selected_models:
     # 输出每个模型的具体预测概率
     location = {"U": "宫腔", "C": "宫颈", "P": "血浆"}[model_key]
     st.write(f"**{location}筛查模型的预测概率:**")
-    st.write(f"- 类别 0（无癌症风险）: {predicted_proba[0]:.2f}")
-    st.write(f"- 类别 1（癌症风险）: {predicted_proba[1]:.2f}")
+    st.write(f"- 类别 0（无癌症风险）: {predicted_proba[0]:.3f}")
+    st.write(f"- 类别 1（癌症风险）: {predicted_proba[1]:.3f}")
 
 # 文案输出
 def generate_output(model_key, predicted_class, predicted_proba):
