@@ -95,6 +95,12 @@ for model_key in selected_models:
         'proba': predicted_proba,
         'class': predicted_class
     }
+    
+    # 输出每个模型的具体预测概率
+    location = {"U": "宫腔", "C": "宫颈", "P": "血浆"}[model_key]
+    st.write(f"**{location}筛查模型的预测概率:**")
+    st.write(f"- 类别 0（无癌症风险）: {predicted_proba[0]:.2f}")
+    st.write(f"- 类别 1（癌症风险）: {predicted_proba[1]:.2f}")
 
 # 文案输出
 def generate_output(model_key, predicted_class, predicted_proba):
