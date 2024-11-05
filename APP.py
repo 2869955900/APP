@@ -38,12 +38,13 @@ original_features_to_scale = [
     'CI_uterine cavity fluid'
 ]
 
+# 额外特征名称映射
 additional_features = {
-    'C': ['CM5141.0', 'CM6160.0', 'CM7441.0', 'CM7439.0', 'CM7438.0', 'CM5139.0', 'CM6557.0', 'CM4088.0'],
-    'P': ['PM733.0', 'PM285.0', 'PM673.0', 'PM469.0', 'PP14.0', 'PP344.0', 'PP526.0', 'PP443.0', 'PM787.0', 'PM722.0'],
-    'U': ['UM7578.0', 'UM510.0', 'UM507.0', 'UM670.0', 'UM351.0', 'UM5905.0', 'UM346.0', 'UM355.0', 
-          'UM8899.0', 'UM1152.0', 'UM5269.0', 'UM6437.0', 'UM5906.0', 'UM7622.0', 'UM8898.0', 'UM2132.0', 
-          'UM3513.0', 'UM790.0', 'UM8349.0', 'UM2093.0', 'UM4210.0', 'UM3935.0', 'UM4256.0']
+    'C': ['CM5141', 'CM6160', 'CM7441', 'CM7439', 'CM7438', 'CM5139', 'CM6557', 'CM4088'],
+    'P': ['PM733', 'PM285', 'PM673', 'PM469', 'PP14', 'PP344', 'PP526', 'PP443', 'PM787', 'PM722'],
+    'U': ['UM7578', 'UM510', 'UM507', 'UM670', 'UM351', 'UM5905', 'UM346', 'UM355', 
+          'UM8899', 'UM1152', 'UM5269', 'UM6437', 'UM5906', 'UM7622', 'UM8898', 'UM2132', 
+          'UM3513', 'UM790', 'UM8349', 'UM2093', 'UM4210', 'UM3935', 'UM4256']
 }
 
 # Streamlit界面
@@ -69,7 +70,8 @@ for i, feature in enumerate(display_features_to_scale):
 # 为每个选定的模型定义额外特征
 for model_key in selected_models:
     for feature in additional_features[model_key]:
-        user_input[feature] = st.number_input(f"{feature} ({model_key}):", min_value=0.0, value=0.0)
+        # 允许保留较多小数位的输入
+        user_input[feature] = st.number_input(f"{feature} ({model_key}):", min_value=0.0, format="%.8f")
 
 # 定义模型预测结果存储字典
 model_predictions = {}
@@ -80,8 +82,8 @@ for model_key in selected_models:
     model_input_df = pd.DataFrame([user_input])
     
     # 只保留该模型的特征列
-    model_features = original_features_to_scale + additional_features[model_key]
-    model_input_df = model_input_df[model_features]
+    model_features = original_features_to_scale + [f"{feature}.0" for feature in additional_features[model_key]]
+    model_input_df.columns = model_features
     
     # 对需要标准化的特征进行标准化
     model_input_df[original_features_to_scale] = scalers[model_key].transform(model_input_df[original_features_to_scale])
